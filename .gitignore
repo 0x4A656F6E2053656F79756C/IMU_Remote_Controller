@@ -1,0 +1,9 @@
+# CSV 데이터 파일 무시
+*.csv
+
+# Python
+__pycache__/
+*.pyc
+
+# virtual environment
+.venv/
