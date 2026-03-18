@@ -1,0 +1,8 @@
+IMU - Arduino
+INT1 - D2
+CS - 3.3V
+SDO - GND
+GND - GND
+SDA - A4
+SCL - A5
+3.3V - 3.3V
