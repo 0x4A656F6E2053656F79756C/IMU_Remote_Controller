@@ -4,6 +4,7 @@
 #define DRDY_PIN 2
 
 volatile bool interruptFlag = false;
+volatile bool isRunning = false; // 전송 상태 제어 플래그
 
 int16_t ax, ay, az;
 int16_t gx, gy, gz;
@@ -30,42 +31,47 @@ uint8_t readRegister(uint8_t reg) {
 }
 
 void setup() {
-  Serial.begin(921600);
+  Serial.begin(500000); // 고속 통신
   Wire.begin();
-  Wire.setClock(400000);
+  Wire.setClock(400000); // I2C Fast Mode
 
   pinMode(DRDY_PIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(DRDY_PIN), onDataReady, RISING);
 
-  // auto increment
+  // 소프트웨어 리셋 트리거
   writeRegister(0x12, 0x01);
+  delay(50); 
 
   // accel 0x70 for ~833 Hz
   writeRegister(0x10, 0x70);
-
   // gyro 0x70 for ~833 Hz
   writeRegister(0x11, 0x70);
-
-  // accel + gyro DRDY 둘 다 사용
+  // accel + gyro DRDY 둘 다 사용 설정
   writeRegister(0x0D, 0x03);
 
   delay(100);
 }
 
 void loop() {
-  if (!interruptFlag) return;
+  // 1. 키보드 입력 체크 ('s' 입력 시 시작/중지)
+  if (Serial.available() > 0) {
+    char c = Serial.read();
+    if (c == 's' || c == 'S') {
+      isRunning = !isRunning;
+    }
+  }
+
+  // 중지 상태이거나 데이터가 준비되지 않았으면 리턴
+  if (!isRunning || !interruptFlag) return;
   interruptFlag = false;
 
-  // STATUS_REG 확인
+  // STATUS_REG 확인 (Accel & Gyro 데이터 모두 준비될 때까지 대기)
   uint8_t status = readRegister(0x1E);
+  while (!((status & 0x01) && (status & 0x02))) {
+    status = readRegister(0x1E);
+  }
 
-  bool accel_ready = status & 0x01;
-  bool gyro_ready  = status & 0x02;
-
-  // 둘 다 준비 안됐으면 무시
-  if (!(accel_ready && gyro_ready)) return;
-
-  // 여기서만 읽기 (중복 제거 핵심)
+  // 데이터 읽기 (0x22번지부터 12바이트: Gyro 6바이트 + Accel 6바이트)
   Wire.beginTransmission(MPU_ADDR);
   Wire.write(0x22);
   Wire.endTransmission(false);
@@ -82,16 +88,15 @@ void loop() {
 
     uint32_t t = micros();
 
-    Serial.write(0xAA);
-    Serial.write(0x55);
-    Serial.write((uint8_t*)&t, 4);
-
-    Serial.write((uint8_t*)&gx, 2);
-    Serial.write((uint8_t*)&gy, 2);
-    Serial.write((uint8_t*)&gz, 2);
-
-    Serial.write((uint8_t*)&ax, 2);
-    Serial.write((uint8_t*)&ay, 2);
-    Serial.write((uint8_t*)&az, 2);
+    // 바이너리 패킷 전송 (총 18바이트)
+    Serial.write(0xAA); // Header 1
+    Serial.write(0x55); // Header 2
+    Serial.write((uint8_t*)&t, 4);   // Timestamp (4 bytes)
+    Serial.write((uint8_t*)&gx, 2);  // Gyro X (2 bytes)
+    Serial.write((uint8_t*)&gy, 2);  // Gyro Y (2 bytes)
+    Serial.write((uint8_t*)&gz, 2);  // Gyro Z (2 bytes)
+    Serial.write((uint8_t*)&ax, 2);  // Accel X (2 bytes)
+    Serial.write((uint8_t*)&ay, 2);  // Accel Y (2 bytes)
+    Serial.write((uint8_t*)&az, 2);  // Accel Z (2 bytes)
   }
 }
