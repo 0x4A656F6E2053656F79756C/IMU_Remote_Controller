@@ -12,13 +12,13 @@ from sklearn.manifold import TSNE  # t-SNE 라이브러리 추가
 # 1. 평가 폴더 설정
 # ---------------------------
 REF_FOLDERS = {
-    'Jun_Yong': ['./Jun_Yong', './Jun_Yong_2'],
-    'Seo_Yul': ['./Seo_Yul', './Seo_Yul_2']
+    'Jun_Yong': ['./Jun_Yong'],
+    'Seo_Yul': ['./Seo_Yul']
 }
 
 TEST_FOLDERS = {
-    'Jun_Yong': ['./test_Jun_Yong'], 
-    'Seo_Yul': ['./test_Seo_Yul']
+    'Jun_Yong': ['./user1_1'], 
+    'Seo_Yul': ['./user2_1']
 }
 
 FEATURE_COLS = ['gx', 'gy', 'gz', 'ax', 'ay', 'az']
