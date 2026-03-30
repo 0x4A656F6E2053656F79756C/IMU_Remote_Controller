@@ -67,7 +67,7 @@ def main():
                 break
             
             # 수집 시작 알림
-            speak("데이터 수집 시작")
+            speak("시작")
             print("🟢 수집 중... (중지하려면 [Enter]를 누르세요)")
             
             stop_flag = False
@@ -107,6 +107,7 @@ def main():
             # 저장 조건 확인
             if count < 1000:
                 print("⚠️ 데이터가 1000개 미만이므로 저장하지 않습니다.")
+                speak(f"데이터가 1000개 미만입니다.")
             else:
                 FILE_NAME = f"imu_record_{time.strftime('%Y%m%d_%H%M%S')}.csv"
                 FILE_PATH = os.path.join(save_dir, FILE_NAME)

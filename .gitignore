@@ -8,7 +8,4 @@ __pycache__/
 # virtual environment
 .venv/
 
-Seo_Yul/
-Jun_Yong/
-Seo_Yul_2/
-Jun_Yong_2/
+.DS_Store/
