@@ -9,3 +9,10 @@ __pycache__/
 .venv/
 
 .DS_Store/
+
+*
+
+!*/
+!new/
+!new/**
+new/data/
